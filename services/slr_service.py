@@ -1,5 +1,8 @@
 from collections import OrderedDict
 import matplotlib
+
+from utils.pdf import generate_pdf
+
 matplotlib.use('Agg')
 from utils.diagram_utils import generate_dfa_diagram_image  
 
@@ -384,8 +387,8 @@ class SLRParser:
                 return {'success': False, 'steps': steps, 'message': 'Max steps exceeded'}
 
 
-    # --------------------- DFA Diagram ---------------------
     def generate_dfa_diagram(self):
         return generate_dfa_diagram_image(self.states, self.dfa_transitions, self._split_production)
 
-
+    def gen_pdf(self): 
+        return generate_pdf(self.grammar,self.start_symbol,self.first_sets, self.follow_sets) 

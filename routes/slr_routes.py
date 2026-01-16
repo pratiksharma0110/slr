@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from handlers.slr_handler import (
+    handle_generate_pdf_notes,
     handle_parse_grammar,
     handle_augment_grammar,
     handle_compute_first_follow,
@@ -20,4 +21,5 @@ slr_bp.route('/generate-dfa-diagram', methods=['POST'])(handle_generate_dfa_diag
 slr_bp.route('/build-parsing-table', methods=['POST'])(handle_build_parsing_table)
 slr_bp.route('/parse-string', methods=['POST'])(handle_parse_string)
 slr_bp.route('/verify-grammar', methods=['POST'])(handle_verify_grammar)
+slr_bp.route('/export-pdf',methods=["POST"])(handle_generate_pdf_notes)
 

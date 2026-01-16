@@ -1,4 +1,5 @@
-from flask import request, jsonify
+from flask import request, jsonify, send_file
+import traceback
 from services.slr_service import SLRParser
 
 def handle_parse_grammar():
@@ -97,20 +98,32 @@ def handle_build_dfa():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
-
 def handle_generate_dfa_diagram():
     try:
-        data = request.json
+        data = request.get_json(force=True) 
+        print("Received data:", data)
+
         grammar_text = data.get('grammar', '')
+        if not grammar_text:
+            print("Error: No grammar provided")
+            return jsonify({'success': False, 'error': 'No grammar provided'}), 400
+
         parser = SLRParser()
         parser.parse_grammar(grammar_text)
         parser.augment_grammar()
         parser.compute_first_sets()
         parser.compute_follow_sets()
         parser.build_dfa()
+
+        print(f"States: {len(parser.states)}, Transitions: {len(parser.dfa_transitions)}")
+
         diagram_base64 = parser.generate_dfa_diagram()
+        print("DFA diagram generated successfully")
+
         return jsonify({'success': True, 'diagram': diagram_base64})
+
     except Exception as e:
+        print("Exception in /api/generate-dfa-diagram:\n", traceback.format_exc())
         return jsonify({'success': False, 'error': str(e)}), 400
 
 
@@ -174,13 +187,13 @@ def handle_verify_grammar():
     try:
         data = request.json
         grammar_text = data.get('grammar', '')
-        parser = SLRParser()
+        parser = slrparser()
         parser.parse_grammar(grammar_text)
         parser.augment_grammar()
         tokenized_productions = {lhs: [parser._split_production(rhs) if rhs else [] for rhs in rhs_list]
                                  for lhs, rhs_list in parser.grammar.items()}
         return jsonify({
-            'success': True,
+            'success': true,
             'grammar': grammar_text,
             'non_terminals': sorted(list(parser.non_terminals)),
             'terminals': sorted(list(parser.terminals - {'$'})),
@@ -188,6 +201,36 @@ def handle_verify_grammar():
             'productions': [{'index': i, 'lhs': lhs, 'rhs': rhs if rhs else 'ε'}
                             for i, (lhs, rhs) in enumerate(parser.productions)]
         })
+    except exception as e:
+        return jsonify({'success': false, 'error': str(e)}), 400
+
+def handle_generate_pdf_notes():
+    try:
+        data = request.get_json(force=True)
+        print("Received data:", data)
+
+        grammar_text = data.get('grammar', '')
+        if not grammar_text:
+            print("Error: No grammar provided")
+            return jsonify({'success': False, 'error': 'No grammar provided'}), 400
+
+       
+        parser = SLRParser()
+        parser.parse_grammar(grammar_text)
+        parser.augment_grammar()
+        parser.compute_first_sets()
+        parser.compute_follow_sets()
+
+        pdf = parser.gen_pdf()
+        return send_file(
+            pdf,
+            as_attachment=True,
+            download_name="Compiler_Grammar_Notes.pdf",
+            mimetype="application/pdf"
+        )
     except Exception as e:
+        print("Exception in /api/generate-pdf-notes:\n", traceback.format_exc())
         return jsonify({'success': False, 'error': str(e)}), 400
+
+
 
