@@ -15,7 +15,6 @@ def root():
 def health():
     return {'status': 'ok'}
 
-# IMPORTANT: keep this, but Railway will NOT use it
 if __name__ == '__main__':
     app.run()
 
