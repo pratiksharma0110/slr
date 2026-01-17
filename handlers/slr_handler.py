@@ -17,24 +17,40 @@ def handle_parse_grammar():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
-
 def handle_augment_grammar():
     try:
         data = request.json
         grammar_text = data.get('grammar', '')
         parser = SLRParser()
         parser.parse_grammar(grammar_text)
-        augmented = parser.augment_grammar()
-        productions = [{'index': i, 'lhs': lhs, 'rhs': rhs if rhs else 'ε'}
-                       for i, (lhs, rhs) in enumerate(parser.productions)]
+        
+        augmented_raw = parser.augment_grammar()
+        
+        augmented_with_dots = {}
+        for lhs, rhs_list in augmented_raw.items():
+            dotted_rhss = []
+            for rhs in rhs_list:
+                rhs_str = " ".join(rhs) if isinstance(rhs, list) else rhs
+                dotted_rhss.append(f"· {rhs_str}".strip())
+            augmented_with_dots[lhs] = dotted_rhss
+
+        productions = []
+        for i, (lhs, rhs) in enumerate(parser.productions):
+            rhs_str = " ".join(rhs) if isinstance(rhs, list) else rhs
+            dot_rhs = f"· {rhs_str}".strip() if rhs_str else "·"
+            productions.append({
+                'index': i, 
+                'lhs': lhs, 
+                'rhs': dot_rhs
+            })
+
         return jsonify({
             'success': True,
-            'augmented_grammar': {k: v for k, v in augmented.items()},
+            'augmented_grammar': augmented_with_dots,
             'productions': productions
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
-
 
 def handle_compute_first_follow():
     try:

@@ -96,7 +96,6 @@ class SLRParser:
                 i += 1
         return tokens
 
-    # --------------------- Grammar Augmentation ---------------------
     def augment_grammar(self):
         new_start = self.original_start + "'"
         self.augmented_grammar = OrderedDict()
@@ -110,7 +109,6 @@ class SLRParser:
                 self.productions.append((lhs, rhs))
         return self.augmented_grammar
 
-    # --------------------- FIRST & FOLLOW ---------------------
     def compute_first_sets(self):
         self.first_sets = {t: {t} for t in self.terminals if t != 'ε'}
         for nt in self.non_terminals:
